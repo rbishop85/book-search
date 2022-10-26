@@ -42,19 +42,28 @@ const resolvers = {
             return { token, user };
         },
         saveBook: async (parent, args, context) => {
-            console.log(args)
-            return await User.findOneAndUpdate(
-                { _id: context.user._id },
-                { $addToSet: { savedBooks: args.input } },
-                { new: true, runValidators: true }
-            )
+            if (context.user) {
+                const updatedUser = await User.findOneAndUpdate(
+                    { _id: context.user._id },
+                    { $addToSet: { savedBooks: args.input } },
+                    { new: true, runValidators: true }
+                );
+                return updatedUser;
+            }
+            // If user attempts to execute this mutation and isn't logged in, throw an error
+            throw new AuthenticationError('You need to be logged in!');
         },
         removeBook: async (parent, args, context) => {
-            return await User.findOneAndUpdate(
-                { _id: context.user._id },
-                { $pull: { savedBooks: { bookId: args.bookId } } },
-                { new: true }
-            )
+            if (context.user) {
+                const updatedUser = await User.findOneAndUpdate(
+                    { _id: context.user._id },
+                    { $pull: { savedBooks: { bookId: args.bookId } } },
+                    { new: true }
+                );
+                return updatedUser;
+            }
+            // If user attempts to execute this mutation and isn't logged in, throw an error
+            throw new AuthenticationError('You need to be logged in!');
         }
     }
 };
