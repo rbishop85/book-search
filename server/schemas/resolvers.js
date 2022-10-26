@@ -7,9 +7,14 @@ const { signToken } = require("../utils/auth");
 const resolvers = {
     Query: {
         me: async (parent, args, context) => {
-            return await User.findOne({
-                $or: [{ _id: context.user ? context.user._id : args.id }, { username: args.username }],
-            });
+            // return await User.findOne({
+            //     $or: [{ _id: context.user ? context.user._id : args.id }, { username: args.username }],
+            // });
+           
+            if (context.user) {
+                return User.findOne({ _id: context.user._id });
+              }
+            //   throw new AuthenticationError('You need to be logged in!');
         }
     },
 
@@ -37,15 +42,16 @@ const resolvers = {
             return { token, user };
         },
         saveBook: async (parent, args, context) => {
+            console.log(args)
             return await User.findOneAndUpdate(
-                { _id: context._id },
-                { $addToSet: { savedBooks: args } },
+                { _id: context.user._id },
+                { $addToSet: { savedBooks: args.input } },
                 { new: true, runValidators: true }
             )
         },
         removeBook: async (parent, args, context) => {
             return await User.findOneAndUpdate(
-                { _id: context._id },
+                { _id: context.user._id },
                 { $pull: { savedBooks: { bookId: args.bookId } } },
                 { new: true }
             )
